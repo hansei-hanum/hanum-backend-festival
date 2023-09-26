@@ -17,7 +17,7 @@ class GetLuckyNumberRequest(BaseModel):
 
 
 @router.post("/lucky_numbers")
-async def get_lucky_number(request: GetLuckyNumberRequest, userid=Depends(RequireAuth)):
+async def issue_lucky_number(request: GetLuckyNumberRequest, userid=Depends(RequireAuth)):
     if Env.NO_LUCKY_NUMBER_UNTIL:
         no_lucky_number_until = datetime.fromisoformat(Env.NO_LUCKY_NUMBER_UNTIL)
 
@@ -34,18 +34,14 @@ async def get_lucky_number(request: GetLuckyNumberRequest, userid=Depends(Requir
 
     async with scope() as session:
         existing_token = (
-            await session.execute(
-                select(LuckyToken).where(LuckyToken.user_id == userid)
-            )
+            await session.execute(select(LuckyToken).where(LuckyToken.user_id == userid))
         ).scalar_one_or_none()
 
         if existing_token:
             raise HTTPException(409, "USER_ALREADY_HAS_LUCKY_NUMBER")
 
         token = (
-            await session.execute(
-                select(LuckyToken).where(LuckyToken.token == request.token)
-            )
+            await session.execute(select(LuckyToken).where(LuckyToken.token == request.token))
         ).scalar_one_or_none()
 
         if not token:
@@ -76,9 +72,7 @@ async def get_lucky_number(userid=Depends(RequireAuth)):
 
     async with scope() as session:
         lucky_number = (
-            await session.execute(
-                select(LuckyNumber).where(LuckyNumber.user_id == userid)
-            )
+            await session.execute(select(LuckyNumber).where(LuckyNumber.user_id == userid))
         ).scalar_one_or_none()
 
         if not lucky_number:
