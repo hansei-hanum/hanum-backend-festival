@@ -65,7 +65,9 @@ async def get_primary_vote_table(user_id: int = Depends(RequireAuth)):
                     "id": myVote.id,
                     "fieldId": myVote.vote_field_id,
                     "createdAt": myVote.created_at,
-                },
+                }
+                if myVote is not None
+                else None,
                 "total": await Vote.total(session, table.id),
             },
         }
