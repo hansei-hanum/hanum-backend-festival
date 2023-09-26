@@ -32,6 +32,17 @@ async def get_primary_vote_table(user_id: int = Depends(RequireAuth)):
                 "data": None,
             }
 
+        myVote: Vote | None = (
+            await session.execute(
+                select(Vote).where(
+                    and_(
+                        Vote.user_id == user_id,
+                        Vote.vote_table_id == table.id,
+                    )
+                )
+            )
+        ).scalar_one_or_none()
+
         return {
             "message": "SUCCESS",
             "data": {
@@ -50,23 +61,11 @@ async def get_primary_vote_table(user_id: int = Depends(RequireAuth)):
                         )
                     ).scalars()
                 ],
-                "myVotes": [
-                    {
-                        "id": vote.id,
-                        "fieldId": vote.vote_field_id,
-                        "createdAt": vote.created_at,
-                    }
-                    for vote in (
-                        await session.execute(
-                            select(Vote).where(
-                                and_(
-                                    Vote.user_id == user_id,
-                                    Vote.vote_table_id == table.id,
-                                )
-                            )
-                        )
-                    ).scalars()
-                ],
+                "myVote": {
+                    "id": myVote.id,
+                    "fieldId": myVote.vote_field_id,
+                    "createdAt": myVote.created_at,
+                },
                 "total": await Vote.total(session, table.id),
             },
         }
