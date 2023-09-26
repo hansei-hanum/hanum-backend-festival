@@ -1,6 +1,6 @@
-from .core import Base
+from .core import Base, AsyncSession
 
-from sqlalchemy import BOOLEAN, Column
+from sqlalchemy import BOOLEAN, Column, select
 from sqlalchemy.dialects.mysql import VARCHAR, BIGINT, DATETIME, ENUM
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
@@ -47,6 +47,12 @@ class Vote(Base):
     vote_field = relationship("VoteField", foreign_keys="Vote.vote_field_id")
     created_at = Column(DATETIME, nullable=False, server_default=func.now())
 
+    @classmethod
+    async def total(cls, sess: AsyncSession, id: Mapped) -> int:
+        return (
+            await sess.execute(select(func.count(cls.id)).where(cls.vote_table_id == id))
+        ).scalar_one()
+
 
 class VoteTable(Base):
     __tablename__ = "VoteTables"
@@ -59,6 +65,3 @@ class VoteTable(Base):
     title = Column(VARCHAR(255), nullable=False)
     created_at = Column(DATETIME, nullable=False, server_default=func.now())
     updated_at = Column(DATETIME, nullable=False, server_default=func.now(), onupdate=func.now())
-
-    fields = relationship("VoteField", foreign_keys="VoteField.vote_table_id")
-    votes = relationship("Vote", foreign_keys="Vote.vote_table_id")
