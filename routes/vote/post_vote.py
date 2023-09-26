@@ -54,7 +54,7 @@ async def post_vote(
                 "data": None,
             }
 
-        if (
+        vote = (
             await session.execute(
                 select(Vote).where(
                     and_(
@@ -63,19 +63,18 @@ async def post_vote(
                     )
                 )
             )
-        ).scalar_one_or_none():
-            return {
-                "message": "ALREADY_VOTED",
-                "data": None,
-            }
+        ).scalar_one_or_none()
 
-        vote = Vote(
-            user_id=user_id,
-            vote_table_id=vote_table_id,
-            vote_field_id=request.field_id,
-        )
+        if vote is None:
+            vote = Vote(
+                user_id=user_id,
+                vote_table_id=vote_table_id,
+                vote_field_id=request.field_id,
+            )
+            session.add(vote)
+        else:
+            vote.vote_field_id = request.field_id
 
-        session.add(vote)
         await session.commit()
 
         return {
