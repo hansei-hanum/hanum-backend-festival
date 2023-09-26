@@ -6,6 +6,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 from sqlalchemy.sql import func
+from .user import User
 
 
 class LuckyToken(Base):
@@ -18,7 +19,7 @@ class LuckyToken(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=True,
     )
-    user = relationship("User", foreign_keys="LuckyToken.user_id")
+    user = relationship(User, foreign_keys="LuckyToken.user_id")
     token = Column(VARCHAR(255), nullable=False)
     created_at = Column(DATETIME, server_default=func.now())
     used_at = Column(DATETIME, server_default=func.now(), onupdate=func.now())

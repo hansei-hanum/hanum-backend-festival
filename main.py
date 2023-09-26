@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from routes import include_router
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
+from database import engine, Base
 
 app = FastAPI()
 
@@ -15,7 +16,8 @@ async def http_exception_handler(request, exc):
 
 @app.on_event("startup")
 async def startup_event():
-    pass
+    async with engine.begin() as sess:
+        await sess.run_sync(Base.metadata.create_all)
 
 
 include_router(app)
